@@ -1,0 +1,150 @@
+# Q1 (2008): Visualise stress onset + spread using VIX, TED spread, and 3M T-bill yield
+# Works directly off /mnt/data/gfc.zip (no manual unzip needed)
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import zipfile
+from io import TextIOWrapper
+
+ZIP_PATH = "/mnt/data/gfc.zip"
+
+# -------- helpers --------
+def find_member(z: zipfile.ZipFile, filename: str) -> str:
+    """Find a file inside the zip by matching its ending name (robust to folders)."""
+    matches = [n for n in z.namelist() if n.endswith(filename)]
+    if not matches:
+        raise FileNotFoundError(f"Couldn't find {filename} inside {ZIP_PATH}. Zip contains:\n" +
+                                "\n".join(z.namelist()[:50]))
+    # If multiple matches, pick the shortest path (usually the main one)
+    return sorted(matches, key=len)[0]
+
+def read_csv_member(z: zipfile.ZipFile, member_name: str) -> pd.DataFrame:
+    with z.open(member_name) as f:
+        return pd.read_csv(TextIOWrapper(f, encoding="utf-8", errors="replace"))
+
+def clean_fred_series(df: pd.DataFrame, value_col: str) -> pd.DataFrame:
+    """FRED-style: observation_date + value_col"""
+    out = df.copy()
+    out["date"] = pd.to_datetime(out["observation_date"])
+    out[value_col] = pd.to_numeric(out[value_col], errors="coerce")
+    out = out[["date", value_col]].dropna().sort_values("date")
+    return out
+
+def clean_yahoo_ohlcv(df_raw: pd.DataFrame) -> pd.DataFrame:
+    """
+    Yahoo-style exports in this dataset often have 2 metadata rows at the top.
+    We detect the first row whose 'Price' field looks like a date, then parse.
+    """
+    df = df_raw.copy()
+
+    # Some files may not have a clean header; ensure "Price" exists
+    if "Price" not in df.columns:
+        # Try to use first row as header if needed (rare)
+        df.columns = df.iloc[0].tolist()
+        df = df.iloc[1:].copy()
+
+    # Find first row where "Price" can be parsed as a date
+    start_idx = None
+    for i in range(min(len(df), 50)):
+        try:
+            pd.to_datetime(df.loc[df.index[i], "Price"])
+            start_idx = i
+            break
+        except Exception:
+            pass
+
+    if start_idx is None:
+        raise ValueError("Couldn't detect where OHLCV data starts in the ^VIX file.")
+
+    df = df.iloc[start_idx:].copy()
+    df = df.rename(columns={"Price": "date"})
+    df["date"] = pd.to_datetime(df["date"])
+
+    for col in ["Close", "High", "Low", "Open", "Volume"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    df = df.dropna(subset=["date", "Close"]).sort_values("date")
+    return df[["date", "Open", "High", "Low", "Close", "Volume"]].copy()
+
+# -------- load data from zip --------
+with zipfile.ZipFile(ZIP_PATH) as z:
+    # Required series for Q1 in 2008: VIX, TED spread, 3M T-bill yield
+    vix_path = find_member(z, "^VIX.csv")
+    ted_path = find_member(z, "TEDRATE.csv")
+    t3m_path = find_member(z, "WGS3MO.csv")
+
+    vix_raw = read_csv_member(z, vix_path)
+    ted_raw = read_csv_member(z, ted_path)
+    t3m_raw = read_csv_member(z, t3m_path)
+
+vix = clean_yahoo_ohlcv(vix_raw)
+ted = clean_fred_series(ted_raw, "TEDRATE").rename(columns={"TEDRATE": "ted_spread"})
+t3m = clean_fred_series(t3m_raw, "WGS3MO").rename(columns={"WGS3MO": "t_bill_3m"})
+
+# -------- build indicators for Q1 --------
+# 1) "Close" (VIX close) = market fear level
+vix["vix_close"] = vix["Close"]
+
+# 2) "Volatility" (intraday range) = stress/fragility
+vix["vix_intraday_vol"] = (vix["High"] - vix["Low"]) / vix["Close"]
+
+# 3) "Volume" (VIX volume) = intensity of hedging/panic activity (supporting)
+vix["vix_volume"] = vix["Volume"]
+
+# Merge to a common date index for aligned plotting
+df = (vix[["date", "vix_close", "vix_intraday_vol", "vix_volume"]]
+      .merge(ted, on="date", how="outer")
+      .merge(t3m, on="date", how="outer")
+      .sort_values("date"))
+
+# Optional: focus on the 2008 window (keeps charts readable)
+start, end = "2008-01-01", "2009-01-01"
+df_win = df[(df["date"] >= start) & (df["date"] <= end)].copy()
+
+# -------- plots (Q1 visuals) --------
+# Chart 1: VIX close (fear) + intraday volatility (fragility)
+plt.figure(figsize=(10, 4))
+plt.plot(df_win["date"], df_win["vix_close"])
+plt.title("2008 Stress Signal: VIX Close (Market Fear)")
+plt.xlabel("Date")
+plt.ylabel("VIX Close")
+plt.tight_layout()
+plt.show()
+
+plt.figure(figsize=(10, 4))
+plt.plot(df_win["date"], df_win["vix_intraday_vol"])
+plt.title("2008 Stress Signal: VIX Intraday Volatility (High-Low)/Close")
+plt.xlabel("Date")
+plt.ylabel("Intraday Volatility")
+plt.tight_layout()
+plt.show()
+
+# Chart 2: TED spread (funding stress)
+plt.figure(figsize=(10, 4))
+plt.plot(df_win["date"], df_win["ted_spread"])
+plt.title("2008 Stress Signal: TED Spread (Bank Funding Stress)")
+plt.xlabel("Date")
+plt.ylabel("TED Spread")
+plt.tight_layout()
+plt.show()
+
+# Chart 3: 3M T-bill yield (flight to safety)
+plt.figure(figsize=(10, 4))
+plt.plot(df_win["date"], df_win["t_bill_3m"])
+plt.title("2008 Flight-to-Safety: 3-Month Treasury Yield (WGS3MO)")
+plt.xlabel("Date")
+plt.ylabel("Yield (%)")
+plt.tight_layout()
+plt.show()
+
+# (Optional supporting chart) VIX volume
+plt.figure(figsize=(10, 4))
+plt.plot(df_win["date"], df_win["vix_volume"])
+plt.title("Supporting: VIX Trading Volume (Intensity of Risk-Off Activity)")
+plt.xlabel("Date")
+plt.ylabel("Volume")
+plt.tight_layout()
+plt.show()
+
+print("Done. You now have the 3 Q1 indicators for 2008: VIX (fear/fragility), TED spread (funding stress), 3M T-bill yield (flight-to-safety).")
