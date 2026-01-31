@@ -1,3 +1,7 @@
 # Environments
 /venv
 .env
+
+# Datasets
+datasets/*
+*.zip
