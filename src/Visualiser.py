@@ -32,27 +32,41 @@ class Visualiser:
         # Create subplot based on number of graphs to plot
         fig = make_subplots(
             rows=len(graphs), cols=1, 
-            shared_xaxes=True, 
-            vertical_spacing=0.1,
+            shared_xaxes=False, 
+            vertical_spacing=0.05,
             subplot_titles=[graph["Title"] for graph in graphs]
         )
 
         # For each graph
         for i, graph in enumerate(graphs):
             # Plot each trace
+            row_idx = i + 1
             for trace in graph["Traces"]:
                 fig.add_trace(
-                    go.Scatter(x=self.df[trace["x"]], y=self.df[trace["y"]], name=trace["Name"], line=dict(color=trace["Color"])),
-                    row=i+1, col=1
+                    go.Scatter(
+                        x=self.df[trace["x"]],
+                        y=self.df[trace["y"]],
+                        name=trace["Name"],
+                        line=dict(color=trace["Color"]),
+                        legendgroup=f"group{row_idx}",
+                        legendgrouptitle_text=f"({row_idx}) {graph["Title"]} Legend" if trace == graph["Traces"][0] else None,
+                        connectgaps=True
+                    ),
+                    row=row_idx, col=1
                 )
+            # Label each individual X-axis
+            fig.update_xaxes(title_text="Date", row=row_idx, col=1)
 
         # Update layout for a professional look
         fig.update_layout(
             title_text=title,
-            height=800,
-            xaxis2_title="Date",
+            height=450*len(graphs),
             hovermode="x unified", # Shows all values in one tooltip when hovering
-            template="plotly_dark"  # Dark mode is standard for financial dashboards
+            template="plotly_dark",  # Dark mode is standard for financial dashboards
+            legend=dict(
+                groupclick="toggleitem",
+                tracegroupgap=330  # Increases vertical gap between legend groups
+            )
         )
 
         fig.show()
