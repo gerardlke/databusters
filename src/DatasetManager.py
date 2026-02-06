@@ -84,12 +84,21 @@ class DatasetManager:
 
 
     def string_to_datetime(self, string):
-        """Helper function to convert unix time to datetime object
+        """Helper function to convert string time to datetime object
         
         Args:
             unix_time: Unix time to convert
         """
         return pd.to_datetime(string, format='%m/%d/%Y')
+
+
+    def string_to_unix(self, string):
+        """Helper function to convert string time to unix object
+        
+        Args:
+            unix_time: Unix time to convert
+        """
+        return pd.to_datetime(string).timestamp() * 1000
     
 
     def combine_dfs(self, dfs, on, how):

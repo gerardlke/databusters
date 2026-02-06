@@ -288,6 +288,12 @@ if __name__ == "__main__":
     vis.plot_indicators(title="Global Financial Crisis", graphs=graphs)
 
     # To focus on specific period
+    vertical_graphs = [
+        {
+            "Event": "Lehman Brothers' Collapse",
+            "Date": dm.string_to_unix("09/15/2008")
+        }
+    ]
     focused_df = vis.focus("2008-01-01", "2008-10-31")
     focused_vis = Visualiser(focused_df)
-    focused_vis.plot_indicators(title="Global Financial Crisis", graphs=graphs)
+    focused_vis.plot_indicators(title="Global Financial Crisis", graphs=graphs, v_graphs=vertical_graphs)

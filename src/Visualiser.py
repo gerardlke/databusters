@@ -22,7 +22,7 @@ class Visualiser:
             & (self.df["Date"] <= ("2050-01-01" if not end else end))
         ].copy()
     
-    def plot_indicators(self, title="No title", graphs=[]):
+    def plot_indicators(self, title="No title", graphs=[], v_graphs=[]):
         """Generates plotlines for indicators
         
         Args:
@@ -56,6 +56,18 @@ class Visualiser:
                 )
             # Label each individual X-axis
             fig.update_xaxes(title_text="Date", row=row_idx, col=1)
+
+        for v_line in v_graphs:
+            fig.add_vline(
+                x=v_line["Date"], 
+                line_width=2, 
+                line_color="white",
+                opacity=1.0,
+                annotation_text=v_line["Event"],
+                annotation_position="top",
+                row="all", # Set to "all" to span all subplots, or a specific row_idx
+                col=1
+            )
 
         # Update layout for a professional look
         fig.update_layout(
