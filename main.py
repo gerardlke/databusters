@@ -285,3 +285,8 @@ if __name__ == "__main__":
         }
     ]
     vis.plot_indicators(title="Global Financial Crisis", graphs=graphs)
+
+    # To focus on specific period
+    focused_df = vis.focus("2008-01-01", "2008-10-31")
+    focused_vis = Visualiser(focused_df)
+    focused_vis.plot_indicators(title="Global Financial Crisis", graphs=graphs)
