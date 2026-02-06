@@ -19,7 +19,8 @@ if __name__ == "__main__":
 
     # Build indicators
     ted_threshold = 0.593827727 + 3 * 0.560750914  # Using mean and stdev of ted in jan 2007
-    ted["Panic_Signal"] = ted["TEDRATE"].where(ted["TEDRATE"] > ted_threshold, ted_threshold)
+    # ted["Panic_Signal"] = ted["TEDRATE"].where(ted["TEDRATE"] > ted_threshold, ted_threshold)  # Only if we want the threshold to trace the TEDRATE
+    ted["Panic_Signal"] = ted_threshold  # If we rather the 
 
     for df in [vix, dji, gspc, aig, citi, jpm]:
         df['Volatility'] = (df["High"] - df["Low"]) / df["Close"]
@@ -276,7 +277,7 @@ if __name__ == "__main__":
                     "Color": "aqua"
                 },
                 {
-                    "Name": "Secondary Market Rate",
+                    "Name": "3-Month U.S. Treasury Bill Secondary Market Rate",
                     "x": "Date",
                     "y": "WGS3MO",
                     "Color": "green"
