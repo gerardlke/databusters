@@ -50,9 +50,13 @@ class Visualiser:
         fig.update_layout(
             title_text=title,
             height=800,
-            xaxis2_title="Date",
+            xaxis_title="Date",
             hovermode="x unified", # Shows all values in one tooltip when hovering
             template="plotly_dark"  # Dark mode is standard for financial dashboards
         )
 
-        fig.show()
+        # Save to HTML file instead of showing
+        fig.write_html("indicators_plot.html")
+        
+
+
