@@ -52,7 +52,7 @@ if __name__ == "__main__":
                 "Name": "3M T-Bill Yield",
                 "x": "Date",
                 "y": "WGS3MO",
-                "Color": "blue"
+                "Color": "yellow"
             }]
         }
     ]
