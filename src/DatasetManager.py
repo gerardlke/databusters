@@ -127,3 +127,12 @@ class DatasetManager:
 
         df = df.dropna(subset=["Date", "Close"]).sort_values("Date")
         return df[["Date", "Open", "High", "Low", "Close", "Volume"]].copy()
+    
+
+    def string_to_unix(self, string):
+        """Helper function to convert string time to unix object
+        
+        Args:
+            unix_time: Unix time to convert
+        """
+        return pd.to_datetime(string).timestamp() * 1000
