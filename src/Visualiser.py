@@ -33,7 +33,7 @@ class Visualiser:
         fig = make_subplots(
             rows=len(graphs), cols=1, 
             shared_xaxes=False, 
-            vertical_spacing=0.05,
+            vertical_spacing=0.15,
             subplot_titles=[graph["Title"] for graph in graphs]
         )
 
@@ -49,20 +49,34 @@ class Visualiser:
                         name=trace["Name"],
                         line=dict(color=trace["Color"]),
                         legendgroup=f"group{row_idx}",
-                        legendgrouptitle_text=f"({row_idx}) {graph["Title"]} Legend" if trace == graph["Traces"][0] else None,
+                        legendgrouptitle_text=f"{graph["Title"]} Legend" if trace == graph["Traces"][0] else None,
                         connectgaps=True
                     ),
                     row=row_idx, col=1
                 )
-
+            fig.update_xaxes(title_text="Date", row=row_idx, col=1)
         for h_line in h_graphs:
+            label = h_line.get("label", "")
+            color = h_line.get("color", "white")
             fig.add_hline(
                 y=h_line["y"],
                 line_width=2,
-                line_color=h_line.get("color", "white"),
+                line_color=color,
                 opacity=1.0,
-                annotation_text=h_line.get("label", ""),
+                annotation_text=label,
                 annotation_position="right",
+                row=1,
+                col=1
+            )
+            fig.add_trace(
+                go.Scatter(
+                    x=[None],
+                    y=[None],
+                    mode="lines",
+                    line=dict(color=color, width=2),
+                    name=label,
+                    showlegend=True
+                ),
                 row=1,
                 col=1
             )
@@ -78,7 +92,7 @@ class Visualiser:
                 row="all", # Set to "all" to span all subplots, or a specific row_idx
                 col=1
             )
-            
+
         # Update layout for a professional look
         fig.update_layout(
             title_text=title,
