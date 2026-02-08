@@ -14,7 +14,7 @@ ustc = dm.get_df("ustc_price_data")
 wluna = dm.get_df("wluna_price_data")
 
 # Build indicators
-for coin, rename in [(ustc, "ustc"), (dai, "dai"), (pax, "pax"), (usdc, "usdc"), (usdt, "usdt")]:
+for coin, rename in [(dai, "dai"), (pax, "pax"), (usdc, "usdc"), (usdt, "usdt"), (ustc, "ustc"), (wluna, "wluna")]:
     # Build indicators for each
     coin["peg_deviation"] = abs(coin["close"] - 1)
     coin["volatility"] = (coin["high"] - coin["low"]) / coin["close"]
@@ -88,4 +88,4 @@ vertical_lines = [
 # Focus the dataframe then plot the graph
 vis = Visualiser(ustc)
 vis.focus("2022-05-02", "2022-05-25")
-vis.plot_indicators(title="Terra USTC Crisis Analysis", graphs=graphs, v_lines=vertical_lines)
+vis.plot_indicators(title="Terra USTC Crisis Analysis", graphs=graphs, v_lines=vertical_lines, graph_height=450, vert_spacing=0.15)

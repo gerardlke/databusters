@@ -14,9 +14,9 @@ ustc = dm.get_df("ustc_price_data")
 wluna = dm.get_df("wluna_price_data")
 
 # Clean data and build indicators
-for coin, rename in [(ustc, "ustc"), (dai, "dai"), (pax, "pax"), (usdc, "usdc"), (usdt, "usdt")]:
+for coin, rename in [(dai, "dai"), (pax, "pax"), (usdc, "usdc"), (usdt, "usdt"), (ustc, "ustc"), (wluna, "wluna")]:
     coin["volatility"] = (coin["high"] - coin["low"]) / coin["close"]
-    coin = dm.clean_price(dm, rename)
+    coin = dm.clean_price(coin, rename)
 
 # Combine dataframes
 combined_price_df = dm.combine_dfs(

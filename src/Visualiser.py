@@ -28,7 +28,7 @@ class Visualiser:
         return self.df
     
 
-    def plot_indicators(self, title="No title", graphs=[], h_lines=[], v_lines=[], graph_height=450):
+    def plot_indicators(self, title="No title", graphs=[], h_lines=[], v_lines=[], graph_height=450, vert_spacing=0.05):
         """Generates plotlines for indicators
         
         Args:
@@ -43,7 +43,7 @@ class Visualiser:
         fig = make_subplots(
             rows=len(graphs), cols=1, 
             shared_xaxes=False, 
-            vertical_spacing=0.05,
+            vertical_spacing=vert_spacing,
             subplot_titles=[graph["Title"] for graph in graphs]
         )
 
@@ -94,7 +94,7 @@ class Visualiser:
         # Update layout design
         fig.update_layout(
             title_text=title,
-            height=graph_height*len(graphs),
+            height=max(1080, graph_height * len(graphs) + vert_spacing * graph_height * (len(graphs) - 1)),
             hovermode="x unified",
             template="plotly_dark",
             legend=dict(

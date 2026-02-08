@@ -80,7 +80,8 @@ class DatasetManager:
         Args:
             unix_time: Unix time to convert
         """
-        return pd.to_datetime(unix_time, unit="s", utc=True).dt.tz_localize(None)
+        timestamp = pd.to_datetime(unix_time, unit="s", utc=True)
+        return timestamp.dt.tz_localize(None) if hasattr(timestamp, 'dt') else timestamp.tz_localize(None)
 
 
     def string_to_datetime(self, string):
