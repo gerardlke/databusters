@@ -1,7 +1,11 @@
 # Environments
 /venv
 .env
+.ipynb_checkpoints
+__pycache__/
 
 # Datasets
 datasets/*
 *.zip
+*__pycache__/
+.csv

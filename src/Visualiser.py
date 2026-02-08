@@ -22,7 +22,7 @@ class Visualiser:
             & (self.df["Date"] <= ("2050-01-01" if not end else end))
         ].copy()
     
-    def plot_indicators(self, title="No title", graphs=[], v_graphs=[]):
+    def plot_indicators(self, title="No title", graphs=[], h_graphs=[],v_graphs=[]):
         """Generates plotlines for indicators
         
         Args:
@@ -49,13 +49,37 @@ class Visualiser:
                         name=trace["Name"],
                         line=dict(color=trace["Color"]),
                         legendgroup=f"group{row_idx}",
-                        legendgrouptitle_text=f"({row_idx}) {graph["Title"]} Legend" if trace == graph["Traces"][0] else None,
+                        legendgrouptitle_text=f"{graph["Title"]} Legend" if trace == graph["Traces"][0] else None,
                         connectgaps=True
                     ),
                     row=row_idx, col=1
                 )
-            # Label each individual X-axis
             fig.update_xaxes(title_text="Date", row=row_idx, col=1)
+        for h_line in h_graphs:
+            label = h_line.get("label", "")
+            color = h_line.get("color", "white")
+            fig.add_hline(
+                y=h_line["y"],
+                line_width=2,
+                line_color=color,
+                opacity=1.0,
+                annotation_text=label,
+                annotation_position="right",
+                row=1,
+                col=1
+            )
+            fig.add_trace(
+                go.Scatter(
+                    x=[None],
+                    y=[None],
+                    mode="lines",
+                    line=dict(color=color, width=2),
+                    name=label,
+                    showlegend=True
+                ),
+                row=1,
+                col=1
+            )
 
         for v_line in v_graphs:
             fig.add_vline(
@@ -72,7 +96,7 @@ class Visualiser:
         # Update layout for a professional look
         fig.update_layout(
             title_text=title,
-            height=450*len(graphs),
+            height=600*len(graphs),
             hovermode="x unified", # Shows all values in one tooltip when hovering
             template="plotly_dark",  # Dark mode is standard for financial dashboards
             legend=dict(
