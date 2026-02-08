@@ -16,14 +16,8 @@ if __name__ == "__main__":
     usdt = dm.get_df("usdt_price_data")
     ustc = dm.get_df("ustc_price_data")
     wluna = dm.get_df("wluna_price_data")
-
-    # Check the timestamp format first
-    print("Sample USTC data:")
-    print(ustc.head())
-    print(f"\nTimestamp column dtype: {ustc['timestamp'].dtype}")
-    print(f"Sample timestamp values: {ustc['timestamp'].iloc[:3].values}")
     
-    # Convert timestamp - check if it's already datetime or needs conversion
+    # Convert timestamp 
     if ustc['timestamp'].dtype != 'datetime64[ns]':
         # Try converting from milliseconds
         ustc['Date'] = pd.to_datetime(ustc['timestamp'], unit='s')
@@ -40,9 +34,9 @@ if __name__ == "__main__":
     ustc['peg_deviation'] = abs(ustc['close'] - 1)
     ustc['volatility'] = (ustc['high'] - ustc['low']) / ustc['close']
     
-    # Define pre-crisis window (April 2022: 4 weeks before May 7, 2022)
+    # Define pre-crisis window
     crisis_date = pd.Timestamp('2022-05-07')
-    pre_crisis_start = crisis_date - pd.Timedelta(weeks=4)
+    pre_crisis_start = crisis_date - pd.Timedelta(weeks=2)
     pre_crisis_end = crisis_date - pd.Timedelta(days=1)
     
     print(f"\nPre-crisis window: {pre_crisis_start} to {pre_crisis_end}")
@@ -106,17 +100,6 @@ if __name__ == "__main__":
     # Create graphs with vertical lines for crisis markers
     graphs = [
         {
-            "Title": "USTC Price",
-            "Traces": [
-                {
-                    "Name": "USTC",
-                    "x": "Date",
-                    "y": "close",
-                    "Color": "blue"
-                }
-            ]
-        },
-        {
             "Title": "USTC Peg Deviation",
             "Traces": [
                 {
@@ -146,15 +129,14 @@ if __name__ == "__main__":
         }
     ]
 
-    vertical_graphs = [
+    h_graphs = [
         {
-            "Event": "First Meaningful Peg Deviation",
-            "Price": first_deviation_value
+            "y": first_deviation_value,
+            "label":f"{threshold:.3g} (Pre-Crisis Threshold)"
         }
-    ]   
-    vis = Visualiser(ustc)
-    vis.plot_indicators(title="Terra USTC Crisis Analysis", graphs=graphs,v_graphs=vertical_graphs)
+    ]
 
+    vis = Visualiser(ustc)
     focused_df = vis.focus("2022-05-02", "2022-05-25")
     focused_vis = Visualiser(focused_df)
-    focused_vis.plot_indicators(title="Terra USTC Crisis Analysis", graphs=graphs, v_graphs=vertical_graphs)
+    focused_vis.plot_indicators(title="Terra USTC Crisis Analysis", graphs=graphs, h_graphs=h_graphs)
