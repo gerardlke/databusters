@@ -54,7 +54,7 @@ class DatasetManager:
             filename: str
         
         Returns:
-            df: pd.dataframe
+            df: pd.Dataframe
         """
         key = next((k for k in self.filemap if filename in k), None)
         
@@ -84,21 +84,21 @@ class DatasetManager:
 
 
     def string_to_datetime(self, string):
-        """Helper function to convert string time to datetime object
+        """Helper function to convert string time (YYYY-MM-DD) to datetime object
         
         Args:
-            unix_time: Unix time to convert
+            string (str): String time to convert
         """
-        return pd.to_datetime(string, format='%m/%d/%Y')
+        return pd.to_datetime(string, format='%Y-%m-%d')
 
 
     def string_to_unix(self, string):
-        """Helper function to convert string time to unix object
+        """Helper function to convert string time (YYYY-MM-DD) to unix object
         
         Args:
-            unix_time: Unix time to convert
+            string (str): String time to convert
         """
-        return pd.to_datetime(string).timestamp() * 1000
+        return pd.to_datetime(string, format='%Y-%m-%d').timestamp() * 1000
     
 
     def combine_dfs(self, dfs, on, how):
@@ -115,27 +115,29 @@ class DatasetManager:
 
         return final_df
 
-    def clean_fred(self, df, value_col):
+    def clean_fred(self, df, value_cols=[]):
         """Cleaning data comes from Federal Reserve data (FRED): observation_date + value_col
         
         Args:
-            df: Dataframe to clean
-            value_col: 
+            df: pd.Dataframe to clean
+            value_col: Volumn yo convert
+
+        Returns: pd.Dataframe
         """
         out = df.copy()
         out["Date"] = self.unix_to_datetime(out["observation_date"])
-        out[value_col] = pd.to_numeric(out[value_col], errors="coerce")
-        out = out[["Date", value_col]].dropna().sort_values("Date")
-        return out
+        for value_col in value_cols:
+            out[value_col] = pd.to_numeric(out[value_col], errors="coerce")
+        return out[["Date", value_col]].dropna().sort_values("Date")
 
 
     def clean_yahoo(self, df_raw):
-        """Cleaning data from Yahoo! finance
-            Yahoo-style exports in this dataset often have 2 metadata rows at the top.
-            We detect the first row whose 'Price' field looks like a Date, then parse.
+        """Cleaning data from Yahoo!: 2 metadata rows on top (detect first row whose 'Price' field looks like a Date then parse)
 
         Args:
-            df_raw: 
+            df_raw: pd.Dataframe to clean
+
+        Returns: pd.Dataframe
         """
         df = df_raw.copy()
 
@@ -187,6 +189,7 @@ class DatasetManager:
         df.dropna(subset=price_cols)
 
         # Rename columns if need be
-        df.rename(columns={col: f"{rename}_{col}" for col in price_cols}, inplace=True)
+        add = f"{rename}_" if rename else ""
+        df.rename(columns={col: add + col for col in price_cols}, inplace=True)
 
-        return df[["Date"] + [f"{rename}_{col}" for col in price_cols]].sort_values("Date")
+        return df[["Date"] + [add + col for col in price_cols]].sort_values("Date")
