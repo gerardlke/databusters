@@ -120,4 +120,4 @@ graphs = [
 # Focus the daily aggregate dataframe then plot the graph
 vis = Visualiser(daily)
 vis.focus("2022-05-03", "2022-05-20")
-vis.plot_indicators(title="Terra USTC Crisis Analysis", graphs=graphs)
+vis.plot_indicators(title="Terra-Luna Crisis: Confidence Breakdown Analysis", graphs=graphs)
