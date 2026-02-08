@@ -72,7 +72,7 @@ class Visualiser:
         # Update layout for a professional look
         fig.update_layout(
             title_text=title,
-            height=450*len(graphs),
+            height=600*len(graphs),
             hovermode="x unified", # Shows all values in one tooltip when hovering
             template="plotly_dark",  # Dark mode is standard for financial dashboards
             legend=dict(

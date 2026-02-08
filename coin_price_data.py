@@ -57,6 +57,7 @@ if __name__ == "__main__":
     baseline_mean = pre_crisis_data['peg_deviation'].mean()
     baseline_std = pre_crisis_data['peg_deviation'].std()
     threshold = baseline_mean + (3 * baseline_std)
+    ustc["threshold"] = threshold
     
     print(f"\nBaseline mean: {baseline_mean:.6f}")
     print(f"Baseline std: {baseline_std:.6f}")
@@ -123,6 +124,12 @@ if __name__ == "__main__":
                     "x": "Date",
                     "y": "peg_deviation",
                     "Color": "red"
+                },
+                {
+                    "Name": "Peg Deviation Threshold",
+                    "x": "Date",
+                    "y": "threshold",
+                    "Color": "white"
                 }
             ]
         },
@@ -144,9 +151,10 @@ if __name__ == "__main__":
             "Event": "First Meaningful Peg Deviation",
             "Price": first_deviation_value
         }
-    ]
+    ]   
     vis = Visualiser(ustc)
     vis.plot_indicators(title="Terra USTC Crisis Analysis", graphs=graphs,v_graphs=vertical_graphs)
+
     focused_df = vis.focus("2022-05-02", "2022-05-25")
     focused_vis = Visualiser(focused_df)
     focused_vis.plot_indicators(title="Terra USTC Crisis Analysis", graphs=graphs, v_graphs=vertical_graphs)
